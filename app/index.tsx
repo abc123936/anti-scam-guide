@@ -19,7 +19,7 @@ export default function ScreenAntiScam() {
       <View style={styles.topSection}>
         <TouchableOpacity 
           style={[styles.box, styles.box1]} 
-          onPress={() => router.push("/NewsList")} // 🚀 點擊跳轉
+          onPress={() => router.push("/NewsList")} // 🚀 點擊跳轉至新聞列表
         >
           <Text style={styles.boxNumber}>1</Text>
           <View style={styles.textContainer}>
@@ -32,7 +32,10 @@ export default function ScreenAntiScam() {
       {/* 下方區塊 (佔下方 1/3) */}
       <View style={styles.bottomSection}>
         {/* 2. 常見新聞相關手法 (佔左下 1/2) */}
-        <TouchableOpacity style={[styles.box, styles.bottomBox, styles.box2]}>
+        <TouchableOpacity 
+          style={[styles.box, styles.bottomBox, styles.box2]}
+          onPress={() => router.push("/ScamMethods")} // 🚀 🌟 這裡幫你加上跳轉至填空細節頁面了！
+        >
           <Text style={styles.boxNumberSmall}>2</Text>
           <Text style={styles.boxTitleSmall}>2. 常見新聞相關手法</Text>
         </TouchableOpacity>

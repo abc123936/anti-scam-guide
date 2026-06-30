@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
+  Linking,
   PanResponder,
   Platform,
   SafeAreaView,
@@ -13,54 +14,110 @@ import {
   View,
 } from "react-native";
 
-// ⚠️ 請在這裡貼回你原本完整的 100 題 RAW_QUIZ_POOL 陣列
+// 🌟 100% 灌入你提供的全新 10 題實戰時事題庫
 const RAW_QUIZ_POOL: {
   [key: string]: {
     title: string;
     hint: string;
     details: string;
     keywords: string[];
+    link: string;
+    isTrue: boolean; // True 爲圈，False 爲叉
   }[];
 } = {
-  電信與簡訊詐騙: [
+  "網路社會與通訊軟體": [
     {
-      title: "銀行帳戶凍結",
-      hint: "您的網路銀行安全機制已過期，請立即登入更新個資，否則將永久凍結帳戶。",
-      keywords: ["網銀", "凍結"],
-      details:
-        "簡訊假冒知名銀行，受害者點進假網銀頁面輸入密碼，詐騙集團立刻在真網銀將存款轉光。",
+      title: "【解除分期付款詐騙】",
+      hint: "在臉書看到『免費認養寵物』訊息，對方稱需先匯 300 元運費，阿明轉帳後，手機隨即跳出被設定『72期分期扣款』的陷阱，並接到假客服來電要求操作解除。",
+      details: "沒錯，這確實是【解除分期付款】的手法。詐騙集團會用免費送養寵物當糖衣，實則誘騙被害人掉入解除分期扣款的傳統圈套。",
+      keywords: ["分期"],
+      link: "https://www.mirrormedia.mg/external/mirrordaily_68401",
+      isTrue: true
     },
-  ],
-  網路社群與通訊軟體: [
     {
-      title: "名人投資廣告",
-      hint: "盜用謝金河、陳重銘等財經名人的照片，聲稱「這是我唯一公開的免費飆股社團」。",
-      keywords: ["名人", "飆股"],
-      details:
-        "在各大社交媒體購買精準廣告，引導受害者點進不公開的詐騙 LINE 飆股群組。",
+      title: "【投資與虛擬貨幣】",
+      hint: "端午節前夕接到自稱肉粽店主管來電，謊稱系統錯誤將訂單設為大宗批發商，今晚不解除將每月自動扣款，隨後引導陳先生操作網路銀行，導致慘賠百萬。",
+      details: "這其實是【網購設定錯誤/解除分期】的手法！詐騙集團利用節慶網購熱潮，編造系統設定錯誤的藉口來誘騙民眾操作網銀，並非投資或虛擬貨幣詐騙。",
+      keywords: ["網購"],
+      link: "https://www.mirrormedia.mg/story/20260607-174soc-145147",
+      isTrue: false
     },
-  ],
-  投資與虛擬貨幣: [
     {
-      title: "虛擬貨幣線下交易",
-      hint: "約在實體便利商店見面交易 USDT，轉帳後對方藉口上廁所坐上接應機車逃逸，或給大疊假鈔。",
-      keywords: ["usdt"],
-      details: "轉移虛寶或貨幣後，對方直接開溜或使用假鈔坑殺。",
+      title: "【假交友戀愛詐騙】",
+      hint: "在交友軟體結識異性出遊，行程結束後對方佯稱『哥哥酒駕被捕急需交保金』借走 15 萬元，隨後將人丟包在超商，連手機包包也一併載走，且車輛掛的是假車牌。",
+      details: "沒錯，這確實是【假交友戀愛詐騙】的手法。利用交友軟體建立信任與好感，再編造家人出事等緊急理由實體詐財並丟包被害人。",
+      keywords: ["交友"],
+      link: "https://www.mirrormedia.mg/story/20260603edi037",
+      isTrue: true
     },
-  ],
-  投資: [
     {
-      title: "虛擬貨幣線下交易",
-      hint: "約在實體便利商店見面交易 USDT，轉帳後對方藉口上廁所坐上接應機車逃逸，或給大疊假鈔。",
-      keywords: ["usdt"],
-      details: "轉移虛寶或貨幣後，對方直接開溜或使用假鈔坑殺。",
+      title: "【網購客服金流詐騙】",
+      hint: "高中男同學盜用正妹照片與個資在 IG 開假帳號，自導自演兩人熱戀並散播不實性愛片，甚至冒用女方名義向其親友演出『沒錢繳學費』的苦情戲碼誘騙匯款。",
+      details: "這其實是【盜用身分/假冒熟人型詐欺】！雖然涉及金流，但核心手法是利用熟人個資在社群開假帳號，並鎖定被害人的親友圈進行精準欺詐。",
+      keywords: ["盜用"],
+      link: "https://www.mirrormedia.mg/story/20260530web006",
+      isTrue: false
     },
+    {
+      title: "【LINE 派對模式側錄詐騙】",
+      hint: "網購蒜頭雞蛋時，假客服誆稱須完成實名制才能交易，誘導民眾加入 LINE 官方帳號並開啟『派對模式（分享螢幕）』，藉機側錄民眾的手機轉帳與付款 QR Code。",
+      details: "沒錯，這確實是【LINE 派對模式側錄詐騙】。官方客服絕不會要求你分享螢幕畫面，任何視訊教學、螢幕分享都可能讓你的帳戶與密碼當場外洩。",
+      keywords: ["派對"],
+      link: "https://www.mirrormedia.mg/story/20260430edi034",
+      isTrue: true
+    },
+    {
+      title: "【非法租用存摺求職詐騙】",
+      hint: "社群宣稱『免費贈送 iPhone 手機』，加 LINE 後假客服以實名認證失敗為由，引導民眾到 ATM 操作『無卡提款』功能以提供『財力證明』，進而騙走無卡提款序號。",
+      details: "這其實是【假贈獎/騙取無卡提款序號】的手法！詐騙集團用免費手機當誘餌，利用民眾對金融功能的不熟悉，隔空騙走提款序號並直接提領現金。",
+      keywords: ["無卡"],
+      link: "https://www.mirrormedia.mg/story/20260503soc004",
+      isTrue: false
+    }
   ],
+  "電信與簡訊詐騙": [
+    {
+      title: "【惡意釣魚連結詐騙】",
+      hint: "收到偽裝成『財政部』的電子郵件宣稱可領 2 萬多元退稅款，要求點擊信中連結進行個資驗證，並誘導填寫信用卡卡號、效期與安全碼以利領取退款。",
+      details: "沒錯，這確實是【惡意釣魚連結詐騙】。官方絕不會透過郵件要求輸入信用卡資訊退稅，假網站通常由亂碼組成，目的是盜刷你的信用卡。",
+      keywords: ["釣魚"],
+      link: "https://www.mirrormedia.mg/story/20260521edi068",
+      isTrue: true
+    },
+    {
+      title: "【假冒官方釣魚網頁】",
+      hint: "假冒悠遊卡會員中心發郵件稱發票中獎 1,000 元，點進網頁後發現，隨意輸入一串手機亂碼竟然也能『驗證成功』，並馬上跳轉要求輸入完整的信用卡號與安全碼。",
+      details: "沒錯，這確實是【假冒官方釣魚網頁】。真實網頁會有後端驗證機制，釣魚網站因為沒有後端，不管輸入什麼亂碼都會成功，純粹是為了蒐集你的卡號。",
+      keywords: ["官網"],
+      link: "https://www.mirrormedia.mg/story/20260302edi042",
+      isTrue: true
+    }
+  ],
+  "投資與虛擬貨幣": [
+    {
+      title: "【海外交易所殺豬盤】",
+      hint: "臉書看到免費領取白沙屯媽祖手鍊廣告，私訊後收到假交易平台連結，對方以『實名制認證失敗、帳戶遭鎖定』為由，恐嚇被害人將實體金融卡寄出並提供密碼。",
+      details: "這其實是【假宮廟名義/騙取人頭帳戶】的手法！詐騙集團緊跟媽祖遶境熱潮，用免費結緣品吸引信眾，再恐嚇騙取實體金融卡作為洗錢人頭帳戶。",
+      keywords: ["殺豬"],
+      link: "https://www.mirrormedia.mg/story/20260503soc001",
+      isTrue: false
+    }
+  ],
+  "金融機構與帳戶": [
+    {
+      title: "【銀行帳戶凍結警示】",
+      hint: "Threads 上出現大量自稱 7-11 店員的新帳號，稱為了完成經理交付的『漲粉絲』任務，只要網友按下追蹤並私訊，就能免費領取布丁、泡麵與不鏽鋼杯等福利。",
+      details: "這其實是【社群假帳號增粉/個資詐騙】！詐騙集團冒充超商員工利用貪小便宜心理吸引大批網友追蹤私訊，隨後會引導點擊不明連結來竊取個資。",
+      keywords: ["凍結"],
+      link: "https://www.mirrormedia.mg/story/20260404edi008",
+      isTrue: false
+    }
+  ]
 };
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
-const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH; // 滑動超過螢幕 25% 才算數
-const SWIPE_OUT_DURATION = 250; // 飛出動畫時間
+const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH; 
+const SWIPE_OUT_DURATION = 250; 
 
 export default function ScamMethods() {
   const router = useRouter();
@@ -70,21 +127,17 @@ export default function ScamMethods() {
   const [showResult, setShowResult] = useState(false);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
 
-  // 🌟 新增：用一個 Ref 來隨時存放「最新的狀態」，突破閉包限制
   const stateRef = useRef({ deck: [] as any[], currentIndex: 0 });
 
-  // 🌟 新增：只要 deck 或 currentIndex 有變，就立刻更新到 stateRef 裡
   useEffect(() => {
     stateRef.current = { deck, currentIndex };
   }, [deck, currentIndex]);
 
-  // 動畫與手勢狀態
   const position = useRef(new Animated.ValueXY()).current;
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
-      // 避免跟卡片內的點擊按鈕衝突，只有滑動距離大於 5 才接管手勢
       onMoveShouldSetPanResponder: (evt, gestureState) => {
         return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
       },
@@ -93,17 +146,16 @@ export default function ScamMethods() {
       },
       onPanResponderRelease: (event, gesture) => {
         if (gesture.dx > SWIPE_THRESHOLD) {
-          forceSwipe("right"); // 往右滑 (圈)
+          forceSwipe("right"); 
         } else if (gesture.dx < -SWIPE_THRESHOLD) {
-          forceSwipe("left"); // 往左滑 (叉)
+          forceSwipe("left"); 
         } else {
-          resetPosition(); // 沒滑超過就彈回中間
+          resetPosition(); 
         }
       },
     }),
   ).current;
 
-  // 程式化滑動卡片飛出
   const forceSwipe = (direction: "left" | "right") => {
     const x = direction === "right" ? SCREEN_WIDTH * 1.5 : -SCREEN_WIDTH * 1.5;
     Animated.timing(position, {
@@ -113,19 +165,16 @@ export default function ScamMethods() {
     }).start(() => onSwipeComplete(direction));
   };
 
-  // 🌟 修改：將 onSwipeComplete 改為從 stateRef 讀取資料
   const onSwipeComplete = (direction: "left" | "right") => {
-    // 改從我們準備好的 stateRef 裡面拿出最新的題庫與進度
     const currentDeck = stateRef.current.deck;
     const currIdx = stateRef.current.currentIndex;
     const currentCard = currentDeck[currIdx];
 
-    // 加入防呆機制，如果真的沒抓到題目就中斷，避免程式崩潰
     if (!currentCard) return;
 
-    // 右滑代表猜 O (True)，左滑代表猜 X (False)
+    // 🌟 右滑判定為 ⭕ 正確，左滑判定為 ❌ 錯誤
     const isGuessingTrue = direction === "right";
-    const correct = currentCard.isTrueMatch === isGuessingTrue;
+    const correct = currentCard.isTrue === isGuessingTrue;
 
     setIsAnswerCorrect(correct);
     setShowResult(true);
@@ -138,7 +187,6 @@ export default function ScamMethods() {
     }).start();
   };
 
-  // 取得卡片旋轉與位移樣式
   const getCardStyle = () => {
     const rotate = position.x.interpolate({
       inputRange: [-SCREEN_WIDTH * 1.5, 0, SCREEN_WIDTH * 1.5],
@@ -151,7 +199,6 @@ export default function ScamMethods() {
     };
   };
 
-  // 產生題目
   const generateDeck = () => {
     let allScams: any[] = [];
     Object.keys(RAW_QUIZ_POOL).forEach((cat) => {
@@ -160,26 +207,11 @@ export default function ScamMethods() {
       });
     });
 
-    const shuffled = allScams.sort(() => 0.5 - Math.random()).slice(0, 10);
-    const matchDeck = shuffled.map((item) => {
-      const isTrueMatch = Math.random() > 0.5;
-      let displayHint = item.hint;
-      let actualAnswerTitle = item.title;
-
-      if (!isTrueMatch) {
-        const randomItem =
-          allScams[Math.floor(Math.random() * allScams.length)];
-        displayHint = randomItem.hint;
-        actualAnswerTitle = randomItem.title;
-      }
-
-      return { ...item, displayHint, isTrueMatch, actualAnswerTitle };
-    });
-
-    setDeck(matchDeck);
+    const shuffled = allScams.sort(() => 0.5 - Math.random());
+    setDeck(shuffled);
     setCurrentIndex(0);
     setShowResult(false);
-    position.setValue({ x: 0, y: 0 }); // 重置位置
+    position.setValue({ x: 0, y: 0 }); 
   };
 
   useEffect(() => {
@@ -190,9 +222,28 @@ export default function ScamMethods() {
     if (currentIndex < deck.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setShowResult(false);
-      position.setValue({ x: 0, y: 0 }); // 下一張卡片回到正中間
+      position.setValue({ x: 0, y: 0 }); 
     } else {
       generateDeck();
+    }
+  };
+
+  // 🚀 修正後的跨平台安全超連結跳轉函式：徹底解決 Web 端與實體手持裝置的 Promise Error
+  const handleOpenLink = async (url: string) => {
+    if (!url) return;
+    if (Platform.OS === "web") {
+      window.open(url, "_blank");
+    } else {
+      try {
+        const supported = await Linking.canOpenURL(url);
+        if (supported) {
+          await Linking.openURL(url);
+        } else {
+          await Linking.openURL(url);
+        }
+      } catch (error) {
+        console.log("無法開啟超連結:", error);
+      }
     }
   };
 
@@ -202,13 +253,10 @@ export default function ScamMethods() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backText}>‹ 返回</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>詐騙辨識挑戰</Text>
+        <Text style={styles.headerTitle}>2. 基本手法挑戰</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -217,68 +265,62 @@ export default function ScamMethods() {
           進度：{currentIndex + 1} / {deck.length}
         </Text>
 
-        {/* 如果正在顯示解答 */}
         {showResult ? (
           <View style={styles.resultCard}>
             <ScrollView contentContainerStyle={styles.resultScroll}>
-              <Text
-                style={
-                  isAnswerCorrect ? styles.resultCorrect : styles.resultWrong
-                }
-              >
+              <Text style={isAnswerCorrect ? styles.resultCorrect : styles.resultWrong}>
                 {isAnswerCorrect ? "🎉 判斷正確！" : "💥 判斷錯誤！"}
               </Text>
 
+              {/* 🌟 核心修正：根據題目本尊是 ⭕ 還 ❌ 分開呈現回饋標題 */}
               <Text style={styles.detailsTitle}>
-                {currentCard.isTrueMatch
-                  ? "沒錯，這確實是這項詐騙的手法。"
-                  : `這其實是【${currentCard.actualAnswerTitle}】的手法！`}
+                {currentCard.isTrue 
+                  ? "沒錯！這確實是該項詐騙的手法。" 
+                  : "不對喔！這其實是匹配到別的案例情境。"}
               </Text>
 
-              <Text style={styles.detailsContent}>{currentCard.details}</Text>
+              <Text style={styles.detailsContent}>
+                {currentCard.details}
+              </Text>
+
+              {/* 🚀 超連結點擊安全包裝區塊 */}
+              <TouchableOpacity 
+                style={styles.linkBox} 
+                onPress={() => handleOpenLink(currentCard.link)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.linkLabel}>📰 原始時事新聞查核直達連結（點擊前往）：</Text>
+                <Text style={styles.linkText} numberOfLines={2}>{currentCard.link}</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity style={styles.nextBtn} onPress={nextCard}>
                 <Text style={styles.nextBtnText}>
-                  {currentIndex === deck.length - 1
-                    ? "完成挑戰！重新開始"
-                    : "下一題 ⏭️"}
+                  {currentIndex === deck.length - 1 ? "完成挑戰！重新開始" : "下一題 ⏭️"}
                 </Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
         ) : (
-          /* 卡片本體 (包含滑動動畫) */
-          <Animated.View
-            style={[styles.card, getCardStyle()]}
-            {...panResponder.panHandlers}
-          >
-            {/* 上半部：題目區 */}
+          <Animated.View key={currentIndex} style={[styles.card, getCardStyle()]} {...panResponder.panHandlers}>
             <View style={styles.cardContent}>
               <View style={styles.cardHeader}>
                 <Text style={styles.categoryTag}>{currentCard.category}</Text>
               </View>
 
-              <Text style={styles.cardTitle}>【 {currentCard.title} 】</Text>
+              <Text style={styles.cardTitle}>{currentCard.title}</Text>
               <Text style={styles.vsText}>搭配以下情境，正確嗎？</Text>
 
               <View style={styles.hintBox}>
-                <Text style={styles.hintText}>"{currentCard.displayHint}"</Text>
+                <Text style={styles.hintText}>"{currentCard.hint}"</Text>
               </View>
             </View>
 
-            {/* 下半部：深色按鈕區 (致敬探探) */}
             <View style={styles.cardBottomBar}>
-              <TouchableOpacity
-                style={[styles.actionBtn, styles.btnCross]}
-                onPress={() => forceSwipe("left")}
-              >
+              <TouchableOpacity style={[styles.actionBtn, styles.btnCross]} onPress={() => forceSwipe("left")}>
                 <Text style={[styles.actionIcon, { color: "#ef4444" }]}>✖</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.actionBtn, styles.btnCheck]}
-                onPress={() => forceSwipe("right")}
-              >
+              <TouchableOpacity style={[styles.actionBtn, styles.btnCheck]} onPress={() => forceSwipe("right")}>
                 <Text style={[styles.actionIcon, { color: "#22c55e" }]}>❤</Text>
               </TouchableOpacity>
             </View>
@@ -303,29 +345,10 @@ const styles = StyleSheet.create({
   },
   backButton: { paddingVertical: 8 },
   backText: { fontSize: 16, color: "#ef4444", fontWeight: "700" },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "900",
-    color: "#111827",
-    textAlign: "center",
-    flex: 1,
-  },
+  headerTitle: { fontSize: 16, fontWeight: "900", color: "#111827", textAlign: "center", flex: 1 },
   placeholder: { width: 50 },
-
-  container: {
-    flex: 1,
-    padding: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  progressText: {
-    fontSize: 14,
-    color: "#6b7280",
-    fontWeight: "800",
-    marginBottom: 12,
-  },
-
-  // 卡片與滑動區域設計
+  container: { flex: 1, padding: 16, alignItems: "center", justifyContent: "center" },
+  progressText: { fontSize: 14, color: "#6b7280", fontWeight: "800", marginBottom: 12 },
   card: {
     width: "100%",
     height: 520,
@@ -333,83 +356,25 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: "#e5e7eb",
-    overflow: "hidden", // 讓底部的深色區域可以貼齊圓角
+    overflow: "hidden", 
     justifyContent: "space-between",
     ...Platform.select({
       web: { boxShadow: "0px 10px 30px rgba(0,0,0,0.08)" },
-      default: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
-      },
-    }),
+      default: { shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 }
+    })
   },
   cardContent: { padding: 24, flex: 1, justifyContent: "center" },
   cardHeader: { alignItems: "center", marginBottom: 16 },
-  categoryTag: {
-    backgroundColor: "#fef08a",
-    color: "#854d0e",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontSize: 12,
-    fontWeight: "800",
-    overflow: "hidden",
-  },
-  cardTitle: {
-    fontSize: 24,
-    fontWeight: "900",
-    color: "#111827",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  vsText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#9ca3af",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-
-  hintBox: {
-    backgroundColor: "#f9fafb",
-    padding: 20,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#f3f4f6",
-  },
-  hintText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#374151",
-    lineHeight: 28,
-    textAlign: "center",
-  },
-
-  // 內嵌在卡片底部的深色按鈕區 (致敬探探)
-  cardBottomBar: {
-    height: 100,
-    backgroundColor: "#111827",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-evenly",
-    paddingHorizontal: 20,
-  },
-  actionBtn: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#1f2937",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  categoryTag: { backgroundColor: "#fee2e2", color: "#ef4444", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, fontSize: 12, fontWeight: "800", overflow: "hidden" },
+  cardTitle: { fontSize: 20, fontWeight: "900", color: "#111827", textAlign: "center", marginBottom: 8 },
+  vsText: { fontSize: 14, fontWeight: "700", color: "#9ca3af", textAlign: "center", marginBottom: 20 },
+  hintBox: { backgroundColor: "#f9fafb", padding: 20, borderRadius: 16, borderWidth: 1, borderColor: "#f3f4f6" },
+  hintText: { fontSize: 15, fontWeight: "700", color: "#374151", lineHeight: 24, textAlign: "justify" },
+  cardBottomBar: { height: 100, backgroundColor: "#111827", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly", paddingHorizontal: 20 },
+  actionBtn: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#1f2937", justifyContent: "center", alignItems: "center" },
   btnCross: { borderWidth: 2, borderColor: "#ef4444" },
   btnCheck: { borderWidth: 2, borderColor: "#22c55e" },
-  actionIcon: { fontSize: 26, lineHeight: 30, fontWeight: "bold" },
-
-  // 結算畫面 (取代卡片位置)
+  actionIcon: { fontSize: 22, fontWeight: "bold" },
   resultCard: {
     width: "100%",
     height: 520,
@@ -420,50 +385,17 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     ...Platform.select({
       web: { boxShadow: "0px 10px 30px rgba(0,0,0,0.08)" },
-      default: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
-      },
-    }),
+      default: { shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 }
+    })
   },
   resultScroll: { padding: 24, flexGrow: 1, justifyContent: "center" },
-  resultCorrect: {
-    fontSize: 26,
-    fontWeight: "900",
-    color: "#166534",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  resultWrong: {
-    fontSize: 26,
-    fontWeight: "900",
-    color: "#b91c1c",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  detailsTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#1f2937",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  detailsContent: {
-    fontSize: 15,
-    color: "#4b5563",
-    lineHeight: 24,
-    fontWeight: "600",
-    textAlign: "justify",
-    marginBottom: 30,
-  },
-  nextBtn: {
-    backgroundColor: "#111827",
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  nextBtnText: { color: "#fff", fontSize: 16, fontWeight: "800" },
+  resultCorrect: { fontSize: 26, fontWeight: "900", color: "#166534", textAlign: "center", marginBottom: 12 },
+  resultWrong: { fontSize: 26, fontWeight: "900", color: "#b91c1c", textAlign: "center", marginBottom: 12 },
+  detailsTitle: { fontSize: 16, fontWeight: "800", color: "#1f2937", marginBottom: 16, textAlign: "center", lineHeight: 22 },
+  detailsContent: { fontSize: 14, color: "#4b5563", lineHeight: 22, fontWeight: "600", textAlign: "justify", marginBottom: 16, backgroundColor: "#f0fdf4", padding: 14, borderRadius: 12 },
+  linkBox: { backgroundColor: "#f3f4f6", padding: 12, borderRadius: 10, marginBottom: 24, borderWidth: 1, borderColor: "#e5e7eb" },
+  linkLabel: { fontSize: 12, fontWeight: "800", color: "#ef4444", marginBottom: 4 },
+  linkText: { fontSize: 11, color: "#1d4ed8", fontWeight: "700", textDecorationLine: "underline" },
+  nextBtn: { backgroundColor: "#111827", paddingVertical: 14, borderRadius: 12, alignItems: "center" },
+  nextBtnText: { color: "#fff", fontSize: 16, fontWeight: "800" }
 });

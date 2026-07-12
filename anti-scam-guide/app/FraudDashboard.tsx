@@ -46,7 +46,9 @@ export default function FraudDashboard() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f3f4f6" },
+  // 🌟 1. 改成白底，消滅頂部的灰邊
+  safe: { flex: 1, backgroundColor: "#ffffff" },
+
   header: {
     height: 56,
     flexDirection: "row",
@@ -54,19 +56,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
   },
-  backButton: { paddingVertical: 8 },
+
+  // 🌟 2. 左右寬度統一是 60，達成絕對置中
+  backButton: { paddingVertical: 8, width: 60, justifyContent: "center" },
+  placeholder: { width: 60 },
+
   backText: { fontSize: 16, color: "#ef4444", fontWeight: "700" },
+
+  // 🌟 3. 字體放大到 18，與前兩頁完全統一
   headerTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "900",
     color: "#111827",
     textAlign: "center",
     flex: 1,
   },
-  placeholder: { width: 50 },
 
   webview: {
     flex: 1,

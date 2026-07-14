@@ -1061,8 +1061,9 @@ export default function ScamMethods() {
                 style={[styles.actionBtn, styles.btnCross]}
                 onPress={() => forceSwipe("left")}
               >
+                {/* 往左滑 / 點擊左邊 = 錯誤 */}
                 <Text style={[styles.actionIcon, { color: "#ef4444" }]}>
-                  ❌
+                  錯誤
                 </Text>
               </TouchableOpacity>
 
@@ -1070,8 +1071,9 @@ export default function ScamMethods() {
                 style={[styles.actionBtn, styles.btnCheck]}
                 onPress={() => forceSwipe("right")}
               >
+                {/* 往右滑 / 點擊右邊 = 正確 */}
                 <Text style={[styles.actionIcon, { color: "#22c55e" }]}>
-                  🟢
+                  正確
                 </Text>
               </TouchableOpacity>
             </View>
